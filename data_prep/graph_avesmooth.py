@@ -113,7 +113,11 @@ while n <= end:
 	r_handpts = readkeypointsfile(key_name + "_hand_right")
 	l_handpts = readkeypointsfile(key_name + "_hand_left")
 	if posepts is None: ## try json
-		posepts, facepts, r_handpts, l_handpts = readkeypointsfile(key_name + "_keypoints")
+		pts = readkeypointsfile(key_name + "_keypoints")
+		if pts is None:
+			print("failed to load " + key_name + "_keypoints")
+			continue
+		posepts, facepts, r_handpts, l_handpts = pts
 		if posepts is None:
 			print('unable to read keypoints file')
 			import sys
