@@ -116,6 +116,7 @@ while n <= end:
 		pts = readkeypointsfile(key_name + "_keypoints")
 		if pts is None:
 			print("failed to load " + key_name + "_keypoints")
+			n += step
 			continue
 		posepts, facepts, r_handpts, l_handpts = pts
 		if posepts is None:
