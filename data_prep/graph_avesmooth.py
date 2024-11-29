@@ -10,11 +10,8 @@ import pylab as plt
 import json
 from PIL import Image
 from shutil import copyfile
-from skimage import img_as_float
 from functools import reduce
 from renderopenpose import *
-from scipy.misc import imresize
-from scipy.misc import imsave
 import os
 import argparse
 
@@ -57,7 +54,7 @@ boxbuffer = opt.boxbuffer
 numframesmade = 0
 n = start
 
-print step
+print(step)
 
 startx = 0
 endx = myshape[1]
@@ -101,7 +98,7 @@ original_queue = []
 
 n = start
 while n <= end:
-	print n
+	print(n)
 	framesmadestr = '%06d' % numframesmade
 
 	filebase_name = os.path.splitext(frames[n])[0]
@@ -123,7 +120,7 @@ while n <= end:
 			sys.exit(0)
 
 	if not (len(posepts) in poselen):
-		print "EMPTY"
+		print("EMPTY")
 		n += 1
 		continue
 	oriImg = cv.imread(frame_name)
@@ -195,9 +192,9 @@ while n <= end:
 		ave = aveface(ave_posepts)
 
 		canvas = renderpose(ave_posepts, 255 * np.ones(myshape, dtype='uint8'))
-		canvas = renderface_sparse(ave_facepts, canvas, numkeypoints)
-		canvas = renderhand(ave_rhand, canvas)
-		canvas = renderhand(ave_lhand, canvas)
+		# canvas = renderface_sparse(ave_facepts, canvas, numkeypoints)
+		# canvas = renderhand(ave_rhand, canvas)
+		# canvas = renderhand(ave_lhand, canvas)
 
 		canvas = canvas[starty:endy, startx:endx, [2,1,0]]
 		canvas = Image.fromarray(canvas)
@@ -206,8 +203,8 @@ while n <= end:
 		saveoriImg = saveoriImg[starty:endy, startx:endx, [2,1,0]]
 		saveoriImg = Image.fromarray(saveoriImg)
 
-		saveoriImg = saveoriImg.resize((2*SIZE,SIZE), Image.ANTIALIAS)
-		canvas = canvas.resize((2*SIZE,SIZE), Image.ANTIALIAS)
+		saveoriImg = saveoriImg.resize((2*SIZE,SIZE), Image.Resampling.LANCZOS)
+		canvas = canvas.resize((2*SIZE,SIZE), Image.Resampling.LANCZOS)
 
 		saveoriImg.save(savedir + '/' + phase + '_img/frame' + framesmadestr + '.png')
 		canvas.save(savedir + '/' + phase + '_label/frame' + framesmadestr + '.png')
