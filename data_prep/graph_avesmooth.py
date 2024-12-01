@@ -106,7 +106,7 @@ while n <= end:
 
 	original_video_name = filebase_name.split("-frame")[0] # videoName
 
-	p = re.compile("frame(.*).png")
+	p = re.compile("frame(.*)")
 	frame_number_str = p.findall(filebase_name)[0]
 
 	key_name = os.path.join(keypoints_dir, filebase_name)
