@@ -14,6 +14,7 @@ from functools import reduce
 from renderopenpose import *
 import os
 import argparse
+import re
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -101,7 +102,13 @@ while n <= end:
 	print(n)
 	framesmadestr = '%06d' % numframesmade
 
-	filebase_name = os.path.splitext(frames[n])[0]
+	filebase_name = os.path.splitext(frames[n])[0] # videoName-frame%d
+
+	original_video_name = filebase_name.split("-frame")[0] # videoName
+
+	p = re.compile("frame(.*).png")
+	frame_number_str = p.findall(filebase_name)[0]
+
 	key_name = os.path.join(keypoints_dir, filebase_name)
 	frame_name = os.path.join(frames_dir, frames[n])
 	
@@ -112,10 +119,17 @@ while n <= end:
 	facepts = readkeypointsfile(key_name + "_face")
 	r_handpts = readkeypointsfile(key_name + "_hand_right")
 	l_handpts = readkeypointsfile(key_name + "_hand_left")
+
+	json_name_1 = key_name + "_keypoints"
+	json_name_2 = original_video_name + "_" + "0"*(12 - len(frame_number_str)) + frame_number_str + "_keypoints"
 	if posepts is None: ## try json
-		pts = readkeypointsfile(key_name + "_keypoints")
+		if os.path.isfile(json_name_1 + ".json"):
+			pts = readkeypointsfile(json_name_1)
+		elif os.path.isfile(json_name_2 + ".json"):
+			pts = readkeypointsfile(json_name_1)
+		# pts = readkeypointsfile(key_name + "_keypoints")
 		if pts is None:
-			print("failed to load " + key_name + "_keypoints")
+			print("failed to load %s or %s ", (json_name_1, json_name_2))
 			n += step
 			continue
 		posepts, facepts, r_handpts, l_handpts = pts
