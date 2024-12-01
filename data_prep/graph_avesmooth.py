@@ -98,49 +98,57 @@ lhand_window = []
 original_queue = []
 
 n = start
-while n <= end:
+
+def find_keypoint_json(frame_file_name):
+	video_name = frame_file_name.split("-frame")[0]  # videoName
+
+	p = re.compile("frame(.*)")
+	frame_number = p.findall(frame_file_name)[0]
+
+	name_1 = frame_file_name + "_keypoints"
+	name_2 = video_name + "_" + "0" * (12 - len(frame_number)) + frame_number + "_keypoints"
+
+	return name_1, name_2
+
+
+for frame in frames:
 	print(n)
 	framesmadestr = '%06d' % numframesmade
 
-	filebase_name = os.path.splitext(frames[n])[0] # videoName-frame%d
-
-	original_video_name = filebase_name.split("-frame")[0] # videoName
-
-	p = re.compile("frame(.*)")
-	frame_number_str = p.findall(filebase_name)[0]
+	filebase_name = os.path.splitext(frame)[0] # videoName-frame%d
 
 	key_name = os.path.join(keypoints_dir, filebase_name)
-	frame_name = os.path.join(frames_dir, frames[n])
+	frame_name = os.path.join(frames_dir, frame)
 	
 	posepts = []
 
 	### try yaml
-	posepts = readkeypointsfile(key_name + "_pose")
-	facepts = readkeypointsfile(key_name + "_face")
-	r_handpts = readkeypointsfile(key_name + "_hand_right")
-	l_handpts = readkeypointsfile(key_name + "_hand_left")
+	# posepts = readkeypointsfile(key_name + "_pose")
+	# facepts = readkeypointsfile(key_name + "_face")
+	# r_handpts = readkeypointsfile(key_name + "_hand_right")
+	# l_handpts = readkeypointsfile(key_name + "_hand_left")
 
-	json_name_1 = key_name + "_keypoints"
-	json_name_2 = original_video_name + "_" + "0"*(12 - len(frame_number_str)) + frame_number_str + "_keypoints"
-	if posepts is None: ## try json
-		if os.path.isfile(json_name_1 + ".json"):
-			pts = readkeypointsfile(json_name_1)
-		elif os.path.isfile(json_name_2 + ".json"):
-			pts = readkeypointsfile(json_name_1)
-		# pts = readkeypointsfile(key_name + "_keypoints")
-		if pts is None:
-			print("failed to load %s or %s ", (json_name_1, json_name_2))
-			n += step
-			continue
-		posepts, facepts, r_handpts, l_handpts = pts
-		if posepts is None:
-			print('unable to read keypoints file')
-			import sys
-			sys.exit(0)
+	json_name_1, json_name_2 = find_keypoint_json(filebase_name)
+	json_1_fullpath = os.path.join(keypoints_dir, json_name_1)
+	json_2_fullpath = os.path.join(keypoints_dir, json_name_2)
+	if os.path.isfile(json_1_fullpath + ".json"):
+		pts = readkeypointsfile(json_1_fullpath)
+	elif os.path.isfile(json_2_fullpath + ".json"):
+		pts = readkeypointsfile(json_2_fullpath)
+	else:
+		print("failed to load %s or %s for %s", (json_1_fullpath, json_2_fullpath, filebase_name))
+		n += step
+		continue
+
+	posepts, facepts, r_handpts, l_handpts = pts
+	if posepts is None:
+		print('unable to read keypoints file')
+		import sys
+		sys.exit(0)
 
 	if not (len(posepts) in poselen):
 		print("EMPTY")
-		n += 1
+		n += step
 		continue
 	oriImg = cv.imread(frame_name)
 	curshape = oriImg.shape
@@ -165,7 +173,7 @@ while n <= end:
 	original_queue += [oriImg]
 
 	if len(pose_window) >= w_size:
-		print("Plotting stick figure for last frame " + filebase_name)
+		# print("Plotting stick figure for last frame " + filebase_name)
 		h_span = w_size // 2
 
 		all_pose = np.array(pose_window)
