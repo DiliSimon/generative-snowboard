@@ -51,7 +51,7 @@ for root in roots:
       num_fail += 1
       continue
     del keypoints[2::3] # Remove every third element, which contains the confidence for each keypoint, and is not relevant to prediction
-    keypoints = keypoints / np.max(np.abs(keypoints),axis=0) # Squeeze everything between 0 and 1
+    # keypoints = keypoints / np.max(np.abs(keypoints),axis=0) # Squeeze everything between 0 and 1
     all_keypoints.append(keypoints)
 
   for i in range(24, len(all_keypoints) - 1):
@@ -86,11 +86,11 @@ print("validation sequence length: " + str(len(keypoint_sequences_val)))
 # keypoint_sequences_val = np.array(keypoint_sequences)
 # target_predictions_val = np.array(target_predictions)
 
-with open("keypoint_sequences.pkl", "wb") as outfile:
+with open("keypoint_sequences_no_normalize.pkl", "wb") as outfile:
   pickle.dump(keypoint_sequences, outfile)
-with open("target_predictions.pkl", "wb") as outfile:
+with open("target_predictions_no_normalize.pkl", "wb") as outfile:
   pickle.dump(target_predictions, outfile)
-with open("keypoint_sequences_val.pkl", "wb") as outfile:
+with open("keypoint_sequences_val_no_normalize.pkl", "wb") as outfile:
   pickle.dump(keypoint_sequences_val, outfile)
-with open("target_predictions_val.pkl", "wb") as outfile:
+with open("target_predictions_val_no_normalize.pkl", "wb") as outfile:
   pickle.dump(target_predictions_val, outfile)
