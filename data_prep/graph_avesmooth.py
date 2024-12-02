@@ -10,13 +10,11 @@ import pylab as plt
 import json
 from PIL import Image
 from shutil import copyfile
-from skimage import img_as_float
 from functools import reduce
 from renderopenpose import *
-from scipy.misc import imresize
-from scipy.misc import imsave
 import os
 import argparse
+import re
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -57,7 +55,7 @@ boxbuffer = opt.boxbuffer
 numframesmade = 0
 n = start
 
-print step
+print(step)
 
 startx = 0
 endx = myshape[1]
@@ -100,31 +98,57 @@ lhand_window = []
 original_queue = []
 
 n = start
-while n <= end:
-	print n
+
+def find_keypoint_json(frame_file_name):
+	video_name = frame_file_name.split("-frame")[0]  # videoName
+
+	p = re.compile("frame(.*)")
+	frame_number = p.findall(frame_file_name)[0]
+
+	name_1 = frame_file_name + "_keypoints"
+	name_2 = video_name + "_" + "0" * (12 - len(frame_number)) + frame_number + "_keypoints"
+
+	return name_1, name_2
+
+
+for frame in frames:
+	print(n)
 	framesmadestr = '%06d' % numframesmade
 
-	filebase_name = os.path.splitext(frames[n])[0]
+	filebase_name = os.path.splitext(frame)[0] # videoName-frame%d
+
 	key_name = os.path.join(keypoints_dir, filebase_name)
-	frame_name = os.path.join(frames_dir, frames[n])
+	frame_name = os.path.join(frames_dir, frame)
 	
 	posepts = []
 
 	### try yaml
-	posepts = readkeypointsfile(key_name + "_pose")
-	facepts = readkeypointsfile(key_name + "_face")
-	r_handpts = readkeypointsfile(key_name + "_hand_right")
-	l_handpts = readkeypointsfile(key_name + "_hand_left")
-	if posepts is None: ## try json
-		posepts, facepts, r_handpts, l_handpts = readkeypointsfile(key_name + "_keypoints")
-		if posepts is None:
-			print('unable to read keypoints file')
-			import sys
-			sys.exit(0)
+	# posepts = readkeypointsfile(key_name + "_pose")
+	# facepts = readkeypointsfile(key_name + "_face")
+	# r_handpts = readkeypointsfile(key_name + "_hand_right")
+	# l_handpts = readkeypointsfile(key_name + "_hand_left")
+
+	json_name_1, json_name_2 = find_keypoint_json(filebase_name)
+	json_1_fullpath = os.path.join(keypoints_dir, json_name_1)
+	json_2_fullpath = os.path.join(keypoints_dir, json_name_2)
+	if os.path.isfile(json_1_fullpath + ".json"):
+		pts = readkeypointsfile(json_1_fullpath)
+	elif os.path.isfile(json_2_fullpath + ".json"):
+		pts = readkeypointsfile(json_2_fullpath)
+	else:
+		print("failed to load %s or %s for %s", (json_1_fullpath, json_2_fullpath, filebase_name))
+		n += step
+		continue
+
+	posepts, facepts, r_handpts, l_handpts = pts
+	if posepts is None:
+		print('unable to read keypoints file')
+		import sys
+		sys.exit(0)
 
 	if not (len(posepts) in poselen):
-		print "EMPTY"
-		n += 1
+		print("EMPTY")
+		n += step
 		continue
 	oriImg = cv.imread(frame_name)
 	curshape = oriImg.shape
@@ -149,7 +173,7 @@ while n <= end:
 	original_queue += [oriImg]
 
 	if len(pose_window) >= w_size:
-		print("Plotting stick figure for last frame " + filebase_name)
+		# print("Plotting stick figure for last frame " + filebase_name)
 		h_span = w_size // 2
 
 		all_pose = np.array(pose_window)
@@ -195,9 +219,9 @@ while n <= end:
 		ave = aveface(ave_posepts)
 
 		canvas = renderpose(ave_posepts, 255 * np.ones(myshape, dtype='uint8'))
-		canvas = renderface_sparse(ave_facepts, canvas, numkeypoints)
-		canvas = renderhand(ave_rhand, canvas)
-		canvas = renderhand(ave_lhand, canvas)
+		# canvas = renderface_sparse(ave_facepts, canvas, numkeypoints)
+		# canvas = renderhand(ave_rhand, canvas)
+		# canvas = renderhand(ave_lhand, canvas)
 
 		canvas = canvas[starty:endy, startx:endx, [2,1,0]]
 		canvas = Image.fromarray(canvas)
@@ -206,8 +230,8 @@ while n <= end:
 		saveoriImg = saveoriImg[starty:endy, startx:endx, [2,1,0]]
 		saveoriImg = Image.fromarray(saveoriImg)
 
-		saveoriImg = saveoriImg.resize((2*SIZE,SIZE), Image.ANTIALIAS)
-		canvas = canvas.resize((2*SIZE,SIZE), Image.ANTIALIAS)
+		saveoriImg = saveoriImg.resize((2*SIZE,SIZE), Image.Resampling.LANCZOS)
+		canvas = canvas.resize((2*SIZE,SIZE), Image.Resampling.LANCZOS)
 
 		saveoriImg.save(savedir + '/' + phase + '_img/frame' + framesmadestr + '.png')
 		canvas.save(savedir + '/' + phase + '_label/frame' + framesmadestr + '.png')
