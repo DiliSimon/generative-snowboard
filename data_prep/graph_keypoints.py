@@ -105,8 +105,7 @@ def find_keypoint_json(frame_file_name):
 	p = re.compile("frame(.*)")
 	frame_number = p.findall(frame_file_name)[0]
 
-	# name_1 = frame_file_name + "_keypoints"
-	name_1 = frame_file_name
+	name_1 = frame_file_name + "_keypoints"
 	name_2 = video_name + "_" + "0" * (12 - len(frame_number)) + frame_number + "_keypoints"
 
 	return name_1, name_2
@@ -129,9 +128,9 @@ for frame in frames:
 	# r_handpts = readkeypointsfile(key_name + "_hand_right")
 	# l_handpts = readkeypointsfile(key_name + "_hand_left")
 
-	# json_name_1, json_name_2 = find_keypoint_json(filebase_name)
-	json_1_fullpath = os.path.join(keypoints_dir, filebase_name)
-	json_2_fullpath = os.path.join(keypoints_dir, filebase_name)
+	json_name_1, json_name_2 = find_keypoint_json(filebase_name)
+	json_1_fullpath = os.path.join(keypoints_dir, json_name_1)
+	json_2_fullpath = os.path.join(keypoints_dir, json_name_2)
 	if os.path.isfile(json_1_fullpath + ".json"):
 		pts = readkeypointsfile(json_1_fullpath)
 	elif os.path.isfile(json_2_fullpath + ".json"):
