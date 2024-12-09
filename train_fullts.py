@@ -88,10 +88,11 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
             ### print out errors
             if total_steps % opt.print_freq == 0:
                 errors = {}
-                if torch.__version__[0] == '1':
-                    errors = {k: v.item() if not isinstance(v, int) else v for k, v in loss_dict.items()}
-                else:
-                    errors = {k: v.data[0] if not isinstance(v, int) else v for k, v in loss_dict.items()}
+                errors = {k: v.item() if not isinstance(v, int) else v for k, v in loss_dict.items()}
+                # if torch.__version__[0] == '1':
+                #     errors = {k: v.item() if not isinstance(v, int) else v for k, v in loss_dict.items()}
+                # else:
+                #     errors = {k: v.data[0] if not isinstance(v, int) else v for k, v in loss_dict.items()}
                 t = (time.time() - iter_start_time) / opt.batchSize
                 visualizer.print_current_errors(epoch, epoch_iter, errors, t)
                 visualizer.plot_current_errors(errors, total_steps)
@@ -118,7 +119,7 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
                                            # ('pre_residual_face', util.tensor2im(preres[:, miny:maxy, minx:maxx])),
                                            ('input_face', util.tensor2im(data['label'][0][:, miny:maxy, minx:maxx], normalize=False)),
                                            ('real_image', util.tensor2im(targets[0]))])
-                visualizer.display_current_results(visuals, epoch, total_steps)
+                # visualizer.display_current_results(visuals, epoch, total_steps)
 
         ### save latest model
         if total_steps % opt.save_latest_freq == 0:
